@@ -1,21 +1,47 @@
 package eci.edu.byteProgramming.ejercicio.paper.util;
 
-public class Product {
-    private String productId;
-    private String name;
-    private double price;
-    private String category;
-    
-    public Product(String productId, String name, double price, String category) {
-        this.productId = productId;
-        this.name = name;
-        this.price = price;
-        this.category = category;
+/**
+ * Observador concreto que orquesta los efectos de un pago exitoso/fallido:
+ * actualiza inventario, factura y notifica al cliente.
+ *
+ * Aplica el patron OBSERVER. Es solo UNO de los posibles observadores;
+ * podrian existir otros (auditoria, analitica, antifraude) sin tocar
+ * {@link ECIPayment}.
+ */
+public class PaymentEventObserver implements PaymentObserver {
+
+    private final Inventory inventory;
+    private final Facturation facturation;
+    private final Notification notification;
+
+    public PaymentEventObserver(Inventory inventory, Facturation facturation, Notification notification) {
+        this.inventory = inventory;
+        this.facturation = facturation;
+        this.notification = notification;
     }
-    
-    // Getters
-    public String getProductId() { return productId; }
-    public String getName() { return name; }
-    public double getPrice() { return price; }
-    public String getCategory() { return category; }
+
+    @Override
+    public void onPaymentSuccess(PaymentMethod payment, String customerName,
+                                 String customerEmail, String productId) {
+        System.out.println("\nPayment Observer: Processing successful payment events...");
+
+        Product product = inventory.getProduct(productId);
+        if (product != null) {
+            inventory.discountProduct(productId, 1);
+        }
+
+        String productDetails = product != null ? product.getName() : "Product";
+        facturation.generateInvoice(payment, customerName, productDetails);
+
+        notification.sendConfirmationEmail(customerEmail, customerName, payment);
+
+        System.out.println("All post-payment processes completed successfully!\n");
+    }
+
+    @Override
+    public void onPaymentFailed(PaymentMethod payment, String customerEmail) {
+        System.out.println("\nPayment Observer: Processing failed payment events...");
+        notification.sendFailureNotification(payment, customerEmail);
+        System.out.println("Failed payment processes completed.\n");
+    }
 }

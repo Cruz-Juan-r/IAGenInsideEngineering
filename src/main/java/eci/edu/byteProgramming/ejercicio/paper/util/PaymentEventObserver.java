@@ -1,39 +1,30 @@
 package eci.edu.byteProgramming.ejercicio.paper.util;
 
-import javax.management.Notification;
+public class Notification {
+    private String companyName = "ECI Payments";
+    private String fromEmail = "noreply@eciPayments.com";
+    
+    public void sendConfirmationEmail(String customerEmail, String customerName, PaymentMethod payment) {
+        System.out.println("Notification: Sending confirmation email");
+        System.out.println("   To: " + customerEmail);
+        System.out.println("   From: " + fromEmail);
+        System.out.println("   Subject: Payment Confirmation - " + payment.getTransactionId());
+        System.out.println("   Dear " + customerName + ",");
+        System.out.println("   Your payment of $" + payment.getAmount() + 
+                         " has been processed successfully via " + payment.getPaymentMethod());
+        System.out.println("   Transaction ID: " + payment.getTransactionId());
+        System.out.println("   Thank you for your purchase!");
+    }   
+    
+    public void sendFailureNotification(PaymentMethod payment, String customerEmail) {
+        System.out.println("Notification: Sending failure notification");
+        System.out.println("   To: " + customerEmail);
+        System.out.println("   Subject: Payment Failed - " + payment.getTransactionId());
+        System.out.println("   Your payment could not be processed. Please try again.");
+    }
 
-public class PaymentEventObserver implements PaymentObserver {
-    private Inventory inventory;
-    private Facturation facturation;
-    private Notification notification;
-    
-    public PaymentEventObserver(Inventory inventory, Facturation facturation, Notification notification) {
-        this.inventory = inventory;
-        this.facturation = facturation;
-        this.notification = notification;
-    }
-    
-    @Override
-    public void onPaymentSuccess(PaymentMethod payment, String customerName, String customerEmail, String productId) {
-        System.out.println("\nPayment Observer: Processing successful payment events...");
-        
-        Product product = inventory.getProduct(productId);
-        if (product != null) {
-            inventory.discountProduct(productId, 1);
-        }
-        
-        String productDetails = product != null ? product.getName() : "Product";
-        facturation.generateInvoice(payment, customerName, productDetails);
-        
-        notification.sendConfirmationEmail(customerEmail, customerName, payment);
-        
-        System.out.println("All post-payment processes completed successfully!\n");
-    }
-    
-    @Override
-    public void onPaymentFailed(PaymentMethod payment, String customerEmail) {
-        System.out.println("\nPayment Observer: Processing failed payment events...");
-        notification.sendFailureNotification(payment, customerEmail);
-        System.out.println("Failed payment processes completed.\n");
-    }
+    // Getters 
+    public String getCompanyName() { return companyName; }
+    public String getFromEmail() { return fromEmail; }
+
 }

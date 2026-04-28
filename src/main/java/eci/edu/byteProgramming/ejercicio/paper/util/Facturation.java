@@ -1,58 +1,89 @@
 package eci.edu.byteProgramming.ejercicio.paper.util;
 
-public class Facturation {
-    private String companyName = "ECI Payments Corp";
-    private String taxId = "NIT 900123456-1";
-    private String address = "Calle 100 #45-30, Bogotá D.C.";
-    private String city = "Bogotá D.C.";
-    private String country = "Colombia";
-    private double taxRate = 0.19; // 19% IVA
-    private int lastInvoiceNumber = 1000;
-    private String currency = "COP";
-    
-    public void generateInvoice(PaymentMethod payment, String customerName, String productDetails) {
-        String invoiceNumber = "INV-" + (++lastInvoiceNumber);
-        double subtotal = payment.getAmount();
-        double taxAmount = subtotal * taxRate;
-        double totalAmount = subtotal + taxAmount;
-        
-        System.out.println("Facturation: Invoice generated");
-        System.out.println("   Invoice Number: " + invoiceNumber);
-        System.out.println("   Company: " + companyName + " (" + taxId + ")");
-        System.out.println("   Customer: " + customerName + " (ID: " + payment.getCustomerId() + ")");
-        System.out.println("   Product: " + productDetails);
-        System.out.println("   Subtotal: $" + String.format("%.2f", subtotal) + " " + currency);
-        System.out.println("   Tax (19%): $" + String.format("%.2f", taxAmount) + " " + currency);
-        System.out.println("   Total: $" + String.format("%.2f", totalAmount) + " " + currency);
-        System.out.println("   Transaction ID: " + payment.getTransactionId());
-        System.out.println("   Date: " + payment.getTimestamp());
-        System.out.println("   Payment Method: " + payment.getPaymentMethod());
-        System.out.println("   Address: " + address + ", " + city + ", " + country);
-        System.out.println("   ----------------------------------------");
+/**
+ * Producto concreto: pago con tarjeta de credito.
+ * Conoce su propia logica de validacion y procesamiento (Single Responsibility).
+ */
+public class CreditCardPayment extends PaymentMethod {
+
+    private final String number;
+    private final String name;
+    private final String expirationDate;
+    private final String cvv;
+    private final String cardType;
+    private final String address;
+
+    public CreditCardPayment(double amount, String customerID, String description,
+                             String number, String name, String expirationDate,
+                             String cvv, String address) {
+        super(amount, customerID, description);
+        this.number = number;
+        this.name = name;
+        this.expirationDate = expirationDate;
+        this.cvv = cvv;
+        this.address = address;
+        this.cardType = determineCardType(number);
     }
-    
-    // Métodos auxiliares
-    public double calculateTax(double amount) {
-        return amount * taxRate;
+
+    @Override
+    public boolean validatePaymentMethod() {
+        return validateCardNumber() && validateCVV() && validateExpirationDate();
     }
-    
-    public double calculateTotal(double subtotal) {
-        return subtotal + calculateTax(subtotal);
+
+    private boolean validateCardNumber() {
+        return number != null && number.length() >= 13 && number.length() <= 19;
     }
-    
-    public String getNextInvoiceNumber() {
-        return "INV-" + (lastInvoiceNumber + 1);
+
+    private boolean validateCVV() {
+        return cvv != null && cvv.length() >= 3 && cvv.length() <= 4;
     }
-    
-    // Getters para configuración
-    public String getCompanyName() { return companyName; }
-    public String getTaxId() { return taxId; }
-    public double getTaxRate() { return taxRate; }
-    public String getCurrency() { return currency; }
-    
-    // Setters para configuración
-    public void setTaxRate(double taxRate) { this.taxRate = taxRate; }
-    public void setCurrency(String currency) { this.currency = currency; }
-    
-    
+
+    private boolean validateExpirationDate() {
+        // Formato MM/YY
+        return expirationDate != null && expirationDate.matches("\\d{2}/\\d{2}");
+    }
+
+    @Override
+    public boolean processPayment() {
+        System.out.println("Processing Credit Card payment...");
+
+        if (!validatePaymentMethod()) {
+            System.out.println("Credit Card validation failed!");
+            setStatus(PaymentStatus.FAILED);
+            return false;
+        }
+
+        setStatus(PaymentStatus.PROCESSING);
+
+        try {
+            System.out.println("Contacting bank for card: " + maskCardNumber());
+            System.out.println("Payment authorized by bank");
+            setStatus(PaymentStatus.COMPLETED);
+            return true;
+        } catch (Exception e) {
+            setStatus(PaymentStatus.FAILED);
+            return false;
+        }
+    }
+
+    @Override
+    public String getPaymentMethod() {
+        return "CREDIT_CARD";
+    }
+
+    private String determineCardType(String cardNumber) {
+        if (cardNumber == null) return "UNKNOWN";
+        if (cardNumber.startsWith("4")) return "VISA";
+        if (cardNumber.startsWith("5")) return "MASTERCARD";
+        if (cardNumber.startsWith("3")) return "AMEX";
+        return "UNKNOWN";
+    }
+
+    public String maskCardNumber() {
+        return "**** **** **** " + number.substring(number.length() - 4);
+    }
+
+    public String getCardHolderName() { return name; }
+    public String getCardType()       { return cardType; }
+    public String getAddress()        { return address; }
 }

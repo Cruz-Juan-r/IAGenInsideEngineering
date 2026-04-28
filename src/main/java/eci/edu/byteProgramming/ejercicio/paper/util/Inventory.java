@@ -1,49 +1,73 @@
 package eci.edu.byteProgramming.ejercicio.paper.util;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-public class Inventory {
-    private static final String LAPTOP001 = "LAPTOP001";
-    private Map<String, Product> products;
-    private Map<String, Integer> stock;
-    
-    public Inventory() {
-        this.products = new HashMap<>();
-        this.stock = new HashMap<>();
-        initializeInventory();
-    }
-    
-    private void initializeInventory() {
-        products.put(LAPTOP001, new Product(LAPTOP001, "Gaming Laptop", 1200.00, "Electronics"));
-        products.put("PHONE001", new Product("PHONE001", "Smartphone", 800.00, "Electronics"));
-        products.put("BOOK001", new Product("BOOK001", "Java Programming Book", 45.99, "Books"));
+/**
+ * Subject del patron OBSERVER y cliente del FACTORY METHOD.
+ *
+ * - Mantiene una lista de {@link PaymentObserver} y los notifica cuando un pago
+ *   termina (exito o fallo). Permite agregar nuevos observadores (auditoria,
+ *   analitica, antifraude, etc.) sin tocar esta clase -> OCP.
+ * - Recibe una {@link PaymentFactory} desde afuera, asi que no conoce las
+ *   clases concretas de PaymentMethod -> DIP.
+ */
+public class ECIPayment {
 
-        stock.put(LAPTOP001, 5);
-        stock.put("PHONE001", 10);
-        stock.put("BOOK001", 20);
+    private final List<PaymentObserver> observers = new ArrayList<>();
+
+    public void addObserver(PaymentObserver observer) {
+        observers.add(observer);
     }
-    
-    public boolean discountProduct(String productId, int quantity) {
-        if (stock.containsKey(productId) && stock.get(productId) >= quantity) {
-            int currentStock = stock.get(productId);
-            stock.put(productId, currentStock - quantity);
-            System.out.println("✅ Inventory: Discounted " + quantity + " units of " + 
-                             products.get(productId).getName());
-            System.out.println("   Remaining stock: " + stock.get(productId));
-            return true;
+
+    public void removeObserver(PaymentObserver observer) {
+        observers.remove(observer);
+    }
+
+    public int getObserverCount() {
+        return observers.size();
+    }
+
+    public boolean processPayment(PaymentFactory factory,
+                                  double amount,
+                                  String customerId,
+                                  String description,
+                                  String customerName,
+                                  String customerEmail,
+                                  String productId,
+                                  Map<String, Object> paymentDetails) {
+
+        System.out.println("ECI Payments: Starting payment process...");
+        System.out.println("Customer: " + customerName + " (" + customerEmail + ")");
+        System.out.println("Amount: $" + amount);
+        System.out.println("Description: " + description);
+        System.out.println("----------------------------------------");
+
+        PaymentMethod payment = factory.createPaymentMethod(amount, customerId, description, paymentDetails);
+        boolean success = payment.processPayment();
+
+        if (success) {
+            System.out.println("Payment processed successfully!");
+            notifyPaymentSuccess(payment, customerName, customerEmail, productId);
         } else {
-            System.out.println("Inventory: Insufficient stock for " + productId);
-            return false;
+            System.out.println("Payment failed!");
+            notifyPaymentFailed(payment, customerEmail);
+        }
+
+        return success;
+    }
+
+    private void notifyPaymentSuccess(PaymentMethod payment, String customerName,
+                                      String customerEmail, String productId) {
+        for (PaymentObserver observer : observers) {
+            observer.onPaymentSuccess(payment, customerName, customerEmail, productId);
         }
     }
-    
-    public Product getProduct(String productId) {
-        return products.get(productId);
-    }
-    
-    public int getStock(String productId) {
-        return stock.getOrDefault(productId, 0);
+
+    private void notifyPaymentFailed(PaymentMethod payment, String customerEmail) {
+        for (PaymentObserver observer : observers) {
+            observer.onPaymentFailed(payment, customerEmail);
+        }
     }
 }
-
