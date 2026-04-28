@@ -1,0 +1,63 @@
+package com.videoclub.membership;
+
+/**
+ * Patron STRATEGY: define la familia de algoritmos para calcular descuentos
+ * segun el tipo de membresia. Permite agregar nuevas membresias (VIP, Estudiante, etc.)
+ * sin modificar el codigo existente -> Open/Closed Principle (SOLID).
+ */
+public interface Membresia {
+
+    /** Nombre legible para el recibo. */
+    String getNombre();
+
+    /** Porcentaje de descuento expresado en decimal (ej. 0.20 = 20%). */
+    double getPorcentajeDescuento();
+
+    /** Calcula el monto de descuento sobre un subtotal. */
+    default double calcularDescuento(double subtotal) {
+        return subtotal * getPorcentajeDescuento();
+    }
+}
+
+package com.videoclub.membership;
+
+/**
+ * Patron FACTORY METHOD: centraliza la creacion de membresias.
+ * Si manana se agrega "VIP", solo se modifica esta clase.
+ */
+public class MembresiaFactory {
+
+    private MembresiaFactory() { }
+
+    public static Membresia crear(String tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo de membresia no puede ser nulo.");
+        }
+        switch (tipo.trim().toLowerCase()) {
+            case "basica":
+            case "básica":
+            case "1":
+                return new MembresiaBasica();
+            case "premium":
+            case "2":
+                return new MembresiaPremium();
+            default:
+                throw new IllegalArgumentException("Tipo de membresia desconocido: " + tipo);
+        }
+    }
+}
+
+package com.videoclub.membership;
+
+public class MembresiaPremium implements Membresia {
+
+    @Override
+    public String getNombre() {
+        return "Premium";
+    }
+
+    @Override
+    public double getPorcentajeDescuento() {
+        return 0.20;
+    }
+}
