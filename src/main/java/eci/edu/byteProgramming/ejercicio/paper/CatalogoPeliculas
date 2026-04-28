@@ -1,0 +1,33 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Encapsula la coleccion de peliculas del videoclub.
+ * Cumple con SINGLE RESPONSIBILITY: solo se ocupa de gestionar el catalogo.
+ */
+public class CatalogoPeliculas {
+
+    private final List<Pelicula> peliculas = new ArrayList<>();
+
+    public void registrar(Pelicula pelicula) {
+        peliculas.add(pelicula);
+    }
+
+    public List<Pelicula> listar() {
+        return Collections.unmodifiableList(peliculas);
+    }
+
+    public Pelicula obtener(int indiceUsuario) {
+        int indice = indiceUsuario - 1; // el usuario ingresa 1..N
+        if (indice < 0 || indice >= peliculas.size()) {
+            throw new IndexOutOfBoundsException(
+                    "Pelicula numero " + indiceUsuario + " no existe en el catalogo.");
+        }
+        return peliculas.get(indice);
+    }
+
+    public int tamano() {
+        return peliculas.size();
+    }
+}
