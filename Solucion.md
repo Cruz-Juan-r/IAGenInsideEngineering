@@ -1,3 +1,14 @@
+Tus prompts en orden
+1. Problema #1 — Videoclub de Don Mario
+Me pegaste el enunciado completo de un ejercicio académico (15 minutos) sobre crear un sistema de alquiler de películas con membresías Básica/Premium, descuentos, recibo, etc. Pediste identificar patrones de diseño, principios SOLID, polimorfismo, encapsulamiento y mostrar evidencia de ejecución.
+2. Problema #2 — Tienda Virtual (enunciado solo)
+Me enviaste el siguiente ejercicio (25 minutos) sobre un sistema de pagos con tarjeta/PayPal/cripto y notificaciones a módulos de inventario, facturación y correo. Pero el enunciado hablaba de "código proporcionado", "diagrama de contexto", "pruebas unitarias" — sin adjuntar nada. Te pregunté si tenías el código base.
+3. "Sí, lo voy a adjuntar"
+Respuesta corta confirmando que ibas a mandar los archivos.
+4. Subiste el zip IAGenInsideEngineering-main.zip
+Sin texto adicional — solo el adjunto. Era un repositorio Maven con código Spring Boot, diagramas UML, un Solucion.md (que ya tenía mi respuesta del Problema 1, porque al parecer continuaste trabajando sobre lo que te entregué antes) y código del Problema 2 con varios errores de compilación.
+5. "Continue"
+Después de que se me agotó el presupuesto de herramientas en mi respuesta anterior y dejé pendiente correr las pruebas + escribir el Solucion.md final + empaquetar la entrega, me pediste que continuara.
 # Solucion Punto 1
 ## Videoclub de Don Mario — Análisis de Diseño
 
